@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Wrapper for Amazon Cognito library with methods common for a web or mobile app, like authentication with email and password, signup, federated login, link accounts, reset password etc.",
   "main": "cognito-helper.js",
+  "repository": "https://github.com/olegabu/cognito-helper.git",
   "dependencies": {
     "async": "^1.4.2",
     "aws-sdk": "^2.1.28",

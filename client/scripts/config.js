@@ -3,8 +3,8 @@ angular.module('config', [])
 {
 dev: {
   awsConfigRegion: 'us-east-1',
-  /*authBaseUrl: 'http://localhost:8100/',*/
-  authBaseUrl: 'https://hijqjref5c.execute-api.us-east-1.amazonaws.com/dev/',
+  authBaseUrl: 'http://localhost:8100/',
+  /*authBaseUrl: 'https://hijqjref5c.execute-api.us-east-1.amazonaws.com/dev/',*/
   auth: {
     facebook: {
       clientId: '603122136500203'
