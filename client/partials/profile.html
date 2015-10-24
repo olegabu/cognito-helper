@@ -1,0 +1,105 @@
+<div class="container">
+  <div class="row">
+    <div class="col-md-6 col-md-offset-3">
+      <div class="panel panel-default">
+        <div class="panel-heading"><h3><i class="fa fa-user"></i> Profile</h3></div>
+        <div class="panel-body">
+          <dl>
+          <dt>id</dt><dd>{{ctl.user.id}}</dd>
+          <dt>name</dt><dd>{{ctl.user.name}}</dd>
+          <dt>email</dt><dd>{{ctl.user.email}}</dd>
+          </dl>
+          <a href ng-show="ctl.user.password && !ctl.passwordOpen" ng-click="ctl.passwordOpen = true">Change Password</a>
+          <form ng-show="ctl.passwordOpen" ng-submit="ctl.updatePassword()" name="updatePasswordForm">
+            <div class="form-group has-feedback" ng-class="{ 'has-error' : updatePasswordForm.password.$invalid && updatePasswordForm.password.$dirty }">
+              <input password-strength class="form-control input-lg" type="password" name="password" ng-model="ctl.password" placeholder="type in new password" required>
+              <span class="ion-key form-control-feedback"></span>
+              <div class="help-block text-danger" ng-if="updatePasswordForm.password.$dirty" ng-messages="updatePasswordForm.password.$error">
+                <div ng-message="required">Password is required.</div>
+              </div>
+            </div>
+            <button class="btn btn-success" ng-disabled="updatePasswordForm.$invalid"><i class="fa fa-key fa-fw"></i> Update password</button>
+          </form>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading"><h3><i class="fa fa-link"></i> Linked Accounts</h3></div>
+        <div class="panel-body">
+        <div class="btn-group-vertical">
+          <button class="btn btn-success" ng-if="ctl.user.provider === 'google'" disabled>
+          <i class="pull-left fa fa-google-plus"></i> Signed in with Google Account
+          </button>
+          <button class="btn btn-danger" 
+          ng-if="ctl.user.google && (ctl.user.provider === 'amazon' || ctl.user.provider === 'facebook' || ctl.user.provider === 'twitter')" 
+          ng-click="ctl.unlink('google')">
+            <i class="pull-left fa fa-google-plus"></i> Unlink Google Account
+          </button>
+          <button class="btn btn-success" 
+          ng-if="ctl.user.google && (ctl.user.provider !== 'google' && ctl.user.provider !== 'amazon' && ctl.user.provider !== 'facebook' && ctl.user.provider !== 'twitter')" disabled>
+            <i class="pull-left fa fa-google-plus"></i> Linked Google Account
+          </button>
+          <!-- <button class="btn btn-danger" ng-if="ctl.user.google && ctl.user.provider" ng-click="ctl.unlink('google')">
+            <i class="pull-left fa fa-google-plus"></i> Unlink Google Account
+          </button> -->
+          <button class="btn btn-primary" ng-if="!ctl.user.google" ng-click="ctl.link('google')">
+            <i class="pull-left fa fa-google-plus"></i> Link Google Account
+          </button>
+  
+          <button class="btn btn-success" ng-if="ctl.user.provider === 'amazon'" disabled>
+            <i class="pull-left icon-amazon-sign"></i> Signed in with Amazon Account
+          </button>
+          <button class="btn btn-danger" 
+          ng-if="ctl.user.amazon && (ctl.user.provider === 'google' || ctl.user.provider === 'facebook' || ctl.user.provider === 'twitter')" 
+          ng-click="ctl.unlink('amazon')">
+            <i class="pull-left icon-amazon-sign"></i> Unlink Amazon Account
+          </button>
+          <button class="btn btn-success" 
+          ng-if="ctl.user.amazon && (ctl.user.provider !== 'amazon' && ctl.user.provider !== 'google' && ctl.user.provider !== 'facebook' && ctl.user.provider !== 'twitter')" disabled>
+            <i class="pull-left icon-amazon-sign"></i> Linked Amazon Account
+          </button>
+          <!-- <button class="btn btn-danger" ng-if="ctl.user.amazon && ctl.user.provider" ng-click="ctl.unlink('amazon')">
+            <i class="pull-left icon-amazon-sign"></i> Unlink Amazon Account
+          </button> -->
+          <button class="btn btn-primary" ng-if="!ctl.user.amazon" ng-click="ctl.link('amazon')">
+            <i class="pull-left icon-amazon-sign"></i> Link Amazon Account
+          </button>
+  
+          <button class="btn btn-success" ng-if="ctl.user.provider === 'paypal'" disabled>
+            <i class="pull-left fa fa-paypal"></i> Signed in with PayPal Account
+          </button>
+          <button class="btn btn-danger" ng-if="ctl.user.paypal && ctl.user.provider !== 'paypal'" ng-click="ctl.unlink('paypal')">
+            <i class="pull-left fa fa-paypal"></i> Unlink PayPal Account
+          </button>
+          <button class="btn btn-primary" ng-if="!ctl.user.paypal" ng-click="ctl.link('paypal')">
+            <i class="pull-left fa fa-paypal"></i> Link PayPal Account
+          </button>
+          
+          <button class="btn btn-success" ng-if="ctl.user.provider === 'stripe'" disabled>
+            <i class="pull-left fa fa-cc-stripe"></i> Signed in with Stripe Account
+          </button>
+          <button class="btn btn-danger" ng-if="ctl.user.stripe && ctl.user.provider !== 'stripe'" ng-click="ctl.unlink('stripe')">
+            <i class="pull-left fa fa-cc-stripe"></i> Unlink Stripe Account
+          </button>
+          <button class="btn btn-primary" ng-if="!ctl.user.stripe" ng-click="ctl.link('stripe')">
+            <i class="pull-left fa fa-cc-stripe"></i> Link Stripe Account
+          </button>
+          
+          <button class="btn btn-danger" ng-if="ctl.user.facebook" ng-click="ctl.unlink('facebook')">
+            <i class="pull-left fa fa-facebook"></i> Unlink Facebook Account
+          </button>
+          <button class="btn btn-primary" ng-if="!ctl.user.facebook" ng-click="ctl.link('facebook')">
+            <i class="pull-left fa fa-facebook"></i> Link Facebook Account
+          </button>
+  
+          <button class="btn btn-danger" ng-if="ctl.user.twitter" ng-click="ctl.unlink('twitter')">
+            <i class="pull-left fa fa-twitter"></i> Unlink Twitter Account
+          </button>
+          <button class="btn btn-primary" ng-if="!ctl.user.twitter" ng-click="ctl.link('twitter')">
+            <i class="pull-left fa fa-twitter"></i> Link Twitter Account
+          </button>
+        </div>
+        </div>
+      </div>
+    </div><!-- / column -->
+  </div><!-- /row -->
+</div>

@@ -1,0 +1,12 @@
+node_modules
+npm-debug.log
+.env
+.project
+*~
+cognito-lambda.zip
+files.txt
+c
+c.tgz
+
+.readme.md.html
+.README.md.html

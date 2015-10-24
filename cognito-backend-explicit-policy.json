@@ -1,0 +1,56 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "cognitoIdentity",
+            "Effect": "Allow",
+            "Action": [
+                "cognito-identity:*"
+            ],
+            "Resource": [
+                "arn:aws:cognito-identity:us-east-1:123456789012:identitypool/us-east-1:12345678-1234-1234-1234-123456789012"
+            ]
+        },
+        {
+            "Sid": "cognitoIdenityDeveloper",
+            "Effect": "Allow",
+            "Action": [
+                "cognito-identity:*"
+            ],
+            "Resource": [
+                "arn:aws:cognito-identity:us-east-1:123456789012:identitypool/"
+            ]
+        },
+        {
+            "Sid": "cognitoSync",
+            "Effect": "Allow",
+            "Action": [
+                "cognito-sync:*"
+            ],
+            "Resource": [
+                "arn:aws:cognito-sync:us-east-1:123456789012:identitypool/us-east-1:12345678-1234-1234-1234-123456789012/identity/*"
+            ]
+        },
+        {
+            "Sid": "ses",
+            "Effect": "Allow",
+            "Action": [
+                "ses:SendEmail",
+                "ses:SendRawEmail"
+            ],
+            "Resource": [
+                "arn:aws:ses:us-east-1:123456789012:identity/*"
+            ]
+        },
+        {
+            "Sid": "log",
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

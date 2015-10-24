@@ -1,0 +1,28 @@
+<!-- Fixed navbar -->
+<nav ng-controller="NavbarController as ctl" class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/app.html">cognito-helper</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li ng-if="isAuthenticated()" ui-sref-active="active"><a ui-sref="auth.profile">Profile</a></li>
+      </ul>
+      <ul ng-if="!isAuthenticated()" class="nav navbar-nav navbar-right">
+        <li ui-sref-active="active"><a ui-sref="public.login">Login</a></li>
+        <li ui-sref-active="active"><a ui-sref="public.signup">Sign up</a></li>
+      </ul>
+      <ul ng-if="isAuthenticated()" class="nav navbar-nav navbar-right">
+      <li><a ui-sref="public.logout">Logout</a></li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div>
+</nav>
+
+<div ui-view></div>

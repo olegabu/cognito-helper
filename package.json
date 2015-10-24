@@ -1,0 +1,42 @@
+{
+  "name": "cognito-helper",
+  "version": "1.0.0",
+  "description": "Wrapper for Amazon Cognito library with methods common for a web or mobile app, like authentication with email and password, signup, federated login, link accounts, reset password etc.",
+  "main": "cognito-helper.js",
+  "dependencies": {
+    "async": "^1.4.2",
+    "aws-sdk": "^2.1.28",
+    "bcryptjs": "^2.1.0",
+    "body-parser": "^1.12.3",
+    "dotenv": "^1.2.0",
+    "express": "^4.12.3",
+    "https-proxy-agent": "^1.0.0",
+    "js-sha256": "^0.3.0",
+    "jwt-simple": "^0.3.0",
+    "lodash": "^3.10.1",
+    "log4js": "^0.6.27",
+    "moment": "^2.10.2",
+    "randomstring": "^1.0.6",
+    "request": "^2.55.0",
+    "string-format": "^0.5.0"
+  },
+  "devDependencies": {
+    "mocha": "^2.3.3"
+  },
+  "scripts": {
+    "doc": "jsdoc2md --template readme.hbs cognito-helper.js > README.md",
+    "test": "mocha",
+    "lambda": "sh zip-lambda.sh"
+  },
+  "keywords": [
+    "authentication",
+    "login",
+    "oauth",
+    "amazon",
+    "aws",
+    "cognito",
+    "satellizer"
+  ],
+  "author": "Oleg Abdrashitov <olegabu73@gmail.com>",
+  "license": "ISC"
+}
