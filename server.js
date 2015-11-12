@@ -57,8 +57,8 @@ function ensureAuthenticated(req, res, next) {
   var payload = jwt.decode(token, config.TOKEN_SECRET);
   logger.debug('ensureAuthenticated', payload);
   var now = moment().unix();
-  logger.debug(payload.exp + ' ' + now);
-  if (payload.exp <= now - 60) {
+  if (payload.exp <= now) {
+  /*if (true) {*/
     return res.status(401).send({ message: 'Token has expired' });
   }
   req.userId = payload.sub;

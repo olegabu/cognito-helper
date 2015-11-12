@@ -274,7 +274,10 @@ function CognitoHelper(config) {
     cognitoIdentity.getCredentialsForIdentity(params, 
         function(err, dataCredentials) {
       if(err) {
-        if(err.message === 'Invalid login token.') {
+        logger.warn('getCredentialsForIdentity err', err);
+        
+        if(err.code === 'NotAuthorizedException') {
+        /*if(err.message === 'Invalid login token.') {*/
           // attempted to validate but provider token has expired, 
           // need to use refresh token to get a new one
           logger.debug('needs refresh', err);
@@ -282,9 +285,12 @@ function CognitoHelper(config) {
           CognitoHelper.refreshProvider(params.IdentityId, 
               function(err, dataRefresh) {
             if(err) {
+              logger.error('getCredentialsForIdentity refreshProvider err', err);
               callback(err);
             }
             else {
+              logger.debug('getCredentialsForIdentity refreshProvider dataRefresh', dataRefresh);
+              
               params.Logins[_.keys(params.Logins)[0]] = dataRefresh.token;
               getCredentialsForIdentity(params, callback);
               //CognitoHelper.getCredentials(params.IdentityId, callback);
