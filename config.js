@@ -61,6 +61,19 @@ module.exports = {
               email: profile ? profile.email : null
         };
       }
+    },
+    facebook: {
+      accessTokenUrl: 'https://graph.facebook.com/v2.3/oauth/access_token',
+      peopleApiUrl: 'https://graph.facebook.com/v2.3/me',
+      client_id: process.env.FACEBOOK_CLIENT_ID || ' Client ID like 123456749841, can be found on developers.facebook.com app dashboard',
+      client_secret: process.env.FACEBOOK_SECRET || 'App secret, can be found on developers.facebook.com app dashboard',
+      normalize: function (token, profile) {
+        return {
+            idToken: token.access_token,
+            name: profile ? profile.name : null,
+            email: profile ? profile.email : null
+        };
+      }
     }
   }
 };
