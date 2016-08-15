@@ -1,4 +1,4 @@
-require('dotenv').load();
+// require('dotenv').load();
 var path = require('path');
 var bodyParser = require('body-parser');
 var express = require('express');
@@ -16,9 +16,9 @@ logger.debug('server loaded config', config);
 var app = express();
 
 app.set('port', config.PORT);
-app.use(log4js.connectLogger(log4js.getLogger('express'), { 
-  level: log4js.levels.INFO, 
-  format: ':method :url :status :res[content-length] - :response-time ms' 
+app.use(log4js.connectLogger(log4js.getLogger('express'), {
+  level: log4js.levels.INFO,
+  format: ':method :url :status :res[content-length] - :response-time ms'
 }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -36,7 +36,7 @@ app.use(function (req, res, next) {
   // Request methods you wish to allow
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   // Request headers you wish to allow
-  res.setHeader('Access-Control-Allow-Headers', 
+  res.setHeader('Access-Control-Allow-Headers',
   'X-Requested-With,content-type,Authorization');
   // disable cache
   res.setHeader('Cache-Control', 'no-cache');
@@ -82,14 +82,14 @@ function createJWT(userId, expiresIn) {
     exp = moment().add(14, 'days');
   }
   logger.debug('createJWT exp', exp.format());
-  
+
   var payload = {
     sub: userId,
     iat: moment().unix(),
     exp: exp.unix(),
   };
   logger.debug('createJWT payload', payload);
-  
+
   return jwt.encode(payload, config.TOKEN_SECRET);
 }
 
@@ -159,7 +159,7 @@ app.post('/auth/forgot', function(req, res) {
  |--------------------------------------------------------------------------
  */
 app.post('/auth/login', function(req, res) {
-  cognito.login(req.body.email, req.body.password, req.body.reset, 
+  cognito.login(req.body.email, req.body.password, req.body.reset,
       function(err, user) {
     if(err) {
       return res.status(err.statusCode || err.code || 400).send(err);
@@ -175,7 +175,7 @@ app.post('/auth/login', function(req, res) {
  |--------------------------------------------------------------------------
  */
 app.post('/auth/signup', function(req, res) {
-  cognito.signup(req.body.name, req.body.email, req.body.password, 
+  cognito.signup(req.body.name, req.body.email, req.body.password,
       function(err, user) {
     if(err) {
       return res.status(err.statusCode || err.code || 400).send(err);
@@ -192,9 +192,9 @@ app.post('/auth/signup', function(req, res) {
  */
 app.post('/auth/unlink', ensureAuthenticated, function(req, res) {
   var provider = req.body.provider;
-  
+
   var userId = req.userId;
-  
+
   cognito.unlink(userId, provider, null, function(err, data) {
     if(err) {
       return res.status(err.statusCode || err.code || 400).send(err);
@@ -220,8 +220,8 @@ app.post('/auth/:provider', function(req, res) {
     logger.debug('loggedIn', loggedIn);
   }
   var userId = loggedIn ? payload.sub : null;
-  
-  cognito.loginFederated(req.params.provider, req.body.code, 
+
+  cognito.loginFederated(req.params.provider, req.body.code,
       req.body.clientId, req.body.redirectUri, userId, function(err, data) {
     if(err) {
       return res.status(err.statusCode || err.code || 400).send(err);
