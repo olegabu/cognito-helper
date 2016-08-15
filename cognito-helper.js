@@ -1,7 +1,7 @@
 /**
  * @module cognito-helper
  */
-require('dotenv').load();
+// require('dotenv').load();
 var sha256 = require('js-sha256').sha256;
 var _ = require('lodash');
 var async = require('async');
@@ -14,11 +14,11 @@ var AWS = require('./aws');
 var configDefault = require('./config');
 
 /**
- * Wrapper for Amazon Cognito library with methods common for a web 
- * or mobile app, like authenticating with email and password, signup, 
+ * Wrapper for Amazon Cognito library with methods common for a web
+ * or mobile app, like authenticating with email and password, signup,
  * federated login, link accounts, reset password etc.
  * @class
- * @param {Object} config - default config settings can be loaded from config.js 
+ * @param {Object} config - default config settings can be loaded from config.js
  */
 function CognitoHelper(config) {
   if(!config) {
@@ -28,23 +28,23 @@ function CognitoHelper(config) {
   else {
     logger.info('cognito-helper loaded config', config);
   }
-  
+
 	var CognitoHelper = this;
-	
+
   var cognitoIdentity = new AWS.CognitoIdentity();
-  
+
   var cognitoSync = new AWS.CognitoSync();
-  
+
   var ses = new AWS.SES();
-  
+
   var encryptPassword = function(password) {
     return sha256(password);
   };
-  
+
   var getRefreshTokenKey = function(provider) {
     return  'refresh' + provider;
   };
-  
+
   var getProfileKey = function(provider) {
     return  'profile' + provider;
   };
@@ -73,12 +73,12 @@ function CognitoHelper(config) {
 	    }
 	  }
 	  return {
-	    name: cognitoProviderName, 
-	    isDeveloper: isDeveloper, 
+	    name: cognitoProviderName,
+	    isDeveloper: isDeveloper,
 	    token: prefixedToken
 	  };
 	};
-  
+
 	/**
 	 * Retrieves records from a CognitoSync profile dataset.
    * @param {String} identityId - CognitoIdentity ID
@@ -87,12 +87,12 @@ function CognitoHelper(config) {
 	 */
   CognitoHelper.getRecords = function(identityId, keys, callback) {
     var params = {
-        IdentityPoolId: config.COGNITO_IDENTITY_POOL_ID, 
+        IdentityPoolId: config.COGNITO_IDENTITY_POOL_ID,
         IdentityId: identityId,
         DatasetName: config.COGNITO_DATASET_NAME
     };
     logger.debug('listRecords', params);
-    
+
     cognitoSync.listRecords(params, function(err, dataRecords) {
       if(err) {
         callback(err);
@@ -101,21 +101,21 @@ function CognitoHelper(config) {
         var ret = {};
 
         _.each(keys, function(key) {
-          var records = _.filter(dataRecords.Records, function(r) { 
-            return _.startsWith(r.Key, key); 
+          var records = _.filter(dataRecords.Records, function(r) {
+            return _.startsWith(r.Key, key);
           });
 
           _.each(records, function(record) {
             ret[record.Key] = record.Value;
           });
-          
+
         });
-        
+
         callback(null, ret);
       }
     });
   };
-  
+
   /**
    * Updates record in a user's profile with CognitoSync.
    * @param {String} identityId - CognitoIdentity ID
@@ -124,11 +124,11 @@ function CognitoHelper(config) {
    * @param {Object} dataRemove - map of the records to remove
    * @param callback - function(err, data)
    */
-  CognitoHelper.updateRecords = function(identityId, 
-      dataCreate, dataReplace, dataRemove, 
+  CognitoHelper.updateRecords = function(identityId,
+      dataCreate, dataReplace, dataRemove,
       callback) {
     var params = {
-        IdentityPoolId: config.COGNITO_IDENTITY_POOL_ID, 
+        IdentityPoolId: config.COGNITO_IDENTITY_POOL_ID,
         IdentityId: identityId,
         DatasetName:config.COGNITO_DATASET_NAME
     };
@@ -140,9 +140,9 @@ function CognitoHelper(config) {
       }
       else {
         var recordPatches = [];
-        
+
         for(var key in dataCreate) {
-          var record = _.find(dataRecords.Records, function(r) { 
+          var record = _.find(dataRecords.Records, function(r) {
             return r.Key === key;
           });
           if(!record) {
@@ -154,9 +154,9 @@ function CognitoHelper(config) {
             });
           }
         }
-        
+
         for(var key in dataReplace) {
-          var record = _.find(dataRecords.Records, function(r) { 
+          var record = _.find(dataRecords.Records, function(r) {
             return r.Key === key;
           });
           recordPatches.push({
@@ -166,9 +166,9 @@ function CognitoHelper(config) {
             Value:dataReplace[key]
           });
         }
-        
+
         for(var key in dataRemove) {
-          var record = _.find(dataRecords.Records, function(r) { 
+          var record = _.find(dataRecords.Records, function(r) {
             return r.Key === key;
           });
           if(record) {
@@ -189,16 +189,16 @@ function CognitoHelper(config) {
           if(err) {
             logger.debug('updateRecords err', err);
           }
-          // ignore err as may get ResourceConflictException 
+          // ignore err as may get ResourceConflictException
           // but still have updated successfully
           callback(null, true);
         });
       }
     });
   };
-  
+
   /**
-   * Retrieves a refresh token for the federated provider the user last logged 
+   * Retrieves a refresh token for the federated provider the user last logged
    * in with. The refresh token is kept in a profile dataset in CognitoSync.
    * Use to call the provider to obtain a new access token.
    * @param {String} identityId - CognitoIdentity ID
@@ -218,30 +218,30 @@ function CognitoHelper(config) {
       }
     });
   };
-  
+
   var updateRefreshToken = function(identityId, provider, refreshToken, profile,
       callback) {
     var replace = {};
-    
+
     if(refreshToken)
       replace[getRefreshTokenKey(provider)] = refreshToken;
-    
+
     if(profile)
       replace[getProfileKey(provider)] = JSON.stringify(profile);
-    
+
     CognitoHelper.updateRecords(identityId, null, replace, null, callback);
   };
-  
-  var onLogin = function(provider, token, refreshToken, profile, name, 
+
+  var onLogin = function(provider, token, refreshToken, profile, name,
       identityId, callback) {
     // updateRecords
     var create = {};
     var replace = {};
     var remove = {};
-    
+
     if(name)
       create.name = name;
-    
+
     if(provider) {
       replace.provider = provider;
       replace.token = token;
@@ -257,7 +257,7 @@ function CognitoHelper(config) {
       replace.token = null;
     }
 
-    CognitoHelper.updateRecords(identityId, create, replace, remove, 
+    CognitoHelper.updateRecords(identityId, create, replace, remove,
         function(err) {
       if(err) {
         callback(err);
@@ -267,22 +267,22 @@ function CognitoHelper(config) {
       }
     });
   };
-  
+
   var getCredentialsForIdentity = function(params, callback) {
     logger.debug('getCredentialsForIdentity ', params);
-    
-    cognitoIdentity.getCredentialsForIdentity(params, 
+
+    cognitoIdentity.getCredentialsForIdentity(params,
         function(err, dataCredentials) {
       if(err) {
         logger.warn('getCredentialsForIdentity err', err);
-        
+
         if(err.code === 'NotAuthorizedException') {
         /*if(err.message === 'Invalid login token.') {*/
-          // attempted to validate but provider token has expired, 
+          // attempted to validate but provider token has expired,
           // need to use refresh token to get a new one
           logger.debug('needs refresh', err);
 
-          CognitoHelper.refreshProvider(params.IdentityId, 
+          CognitoHelper.refreshProvider(params.IdentityId,
               function(err, dataRefresh) {
             if(err) {
               logger.error('getCredentialsForIdentity refreshProvider err', err);
@@ -290,7 +290,7 @@ function CognitoHelper(config) {
             }
             else {
               logger.debug('getCredentialsForIdentity refreshProvider dataRefresh', dataRefresh);
-              
+
               params.Logins[_.keys(params.Logins)[0]] = dataRefresh.token;
               getCredentialsForIdentity(params, callback);
               //CognitoHelper.getCredentials(params.IdentityId, callback);
@@ -307,13 +307,13 @@ function CognitoHelper(config) {
     }
     );
   };
-  
+
   /**
-   * Retrieves AWS Credentials to call AWS services 
+   * Retrieves AWS Credentials to call AWS services
    * the Authenticated User Role permits.
-   * If the credentials expired due to a time limit on federated login session, 
-   * uses saved refresh token to re-login with the federated provider, and 
-   * uses the new access token. 
+   * If the credentials expired due to a time limit on federated login session,
+   * uses saved refresh token to re-login with the federated provider, and
+   * uses the new access token.
    * @param {String} identityId - CognitoIdentity ID
    * @param callback - function(err, data)
    */
@@ -330,17 +330,17 @@ function CognitoHelper(config) {
             IdentityId: identityId,
             Logins: {}
         };
-        
+
         var p = normalizeProvider(dataProvider.provider, dataProvider.token);
         //logger.debug('provider', p);
-        
+
         params.Logins[p.name] = p.token;
-        
-        if(p.isDeveloper) {          
+
+        if(p.isDeveloper) {
           params.IdentityPoolId = config.COGNITO_IDENTITY_POOL_ID;
           logger.debug('getOpenIdTokenForDeveloperIdentity', params);
-          
-          cognitoIdentity.getOpenIdTokenForDeveloperIdentity(params, 
+
+          cognitoIdentity.getOpenIdTokenForDeveloperIdentity(params,
               function(err, dataOpenIdToken) {
             if(err) {
               callback(err);
@@ -350,20 +350,20 @@ function CognitoHelper(config) {
                   IdentityId: identityId,
                   Logins: {}
               };
-              params.Logins['cognito-identity.amazonaws.com'] = 
+              params.Logins['cognito-identity.amazonaws.com'] =
                 dataOpenIdToken.Token;
-              
+
               getCredentialsForIdentity(params, callback);
             }
           });
         }
-        else {          
+        else {
           getCredentialsForIdentity(params, callback);
         }
-      } 
+      }
     });
   };
-  
+
   /**
    * Creates a user in CognitoIdentity with an email as a developer identifier.
    * Stores user name and password in CognitoSync.
@@ -383,13 +383,13 @@ function CognitoHelper(config) {
             callback(err);
           }
           else {
-            putPasswordCognitoSync(dataDeveloperIdentity.IdentityId, password, 
+            putPasswordCognitoSync(dataDeveloperIdentity.IdentityId, password,
                 function(err, data) {
               if(err) {
                 callback(err);
               }
               else {
-                onLogin(null, email, null, null, name, 
+                onLogin(null, email, null, null, name,
                     dataDeveloperIdentity.IdentityId, callback);
               }
             });
@@ -398,7 +398,7 @@ function CognitoHelper(config) {
       }
     });
   };
-  
+
   /**
    * Updates password record in a user's profile with CognitoSync.
    * @param {String} identityId - CognitoIdentity ID
@@ -408,13 +408,13 @@ function CognitoHelper(config) {
   CognitoHelper.updatePassword = function(identityId, password, callback) {
     putPasswordCognitoSync(identityId, password, callback);
   };
-  
+
   /**
    * Sends an email with a link to temporarily login the user
-   * instead of a forgotten password. Uses Amazon SimpleEmailService (SES). 
-   * Email body, subject and source are defined in the config. 
-   * Make sure the email source (from email) is authorized to send emails 
-   * with SES. 
+   * instead of a forgotten password. Uses Amazon SimpleEmailService (SES).
+   * Email body, subject and source are defined in the config.
+   * Make sure the email source (from email) is authorized to send emails
+   * with SES.
    * @param {String} email - email uniquely identifies a user
    * @param callback - function(err, data)
    */
@@ -429,13 +429,13 @@ function CognitoHelper(config) {
         logger.debug('r', r);
 
         // send email with the link
-        var url = 
+        var url =
           config.COGNITO_PASSWORD_RESET_URL.format({email: email, reset: r});
         var body = config.COGNITO_PASSWORD_RESET_BODY.format({name: email});
         var bodyTxt = body.concat('\n\n').concat(url);
         var link = '<a href="{url}">{url}</a>'.format({url: url});
         var bodyHtml = body.concat('<br/><br/>').concat(link);
-        
+
         var params = {
             Destination: { ToAddresses: [email] },
             Message: {
@@ -448,13 +448,13 @@ function CognitoHelper(config) {
             Source: config.COGNITO_PASSWORD_RESET_SOURCE
         };
         logger.debug('params', params);
-        
+
         ses.sendEmail(params, function(err, data) {
           if(err)
             callback('cannot sendEmail ' + err);
           else {
             var p = encryptPassword(r);
-            CognitoHelper.updateRecords(identityId, null, {reset:p}, null, 
+            CognitoHelper.updateRecords(identityId, null, {reset:p}, null,
                 function(err, data) {
               if(err) {
                 callback(err);
@@ -468,15 +468,15 @@ function CognitoHelper(config) {
       }
     });
   };
-  
+
   var putPasswordCognitoSync = function(identityId, password, callback) {
     var p = encryptPassword(password);
     CognitoHelper.updateRecords(identityId, null, {password:p}, null, callback);
   };
-  
-  var checkPasswordCognitoSync = function(identityId, password, reset, 
+
+  var checkPasswordCognitoSync = function(identityId, password, reset,
       callback) {
-    CognitoHelper.getRecords(identityId, ['password','reset'], 
+    CognitoHelper.getRecords(identityId, ['password','reset'],
         function(err, data) {
       if(err)
         callback('cannot get password ' + err);
@@ -490,7 +490,7 @@ function CognitoHelper(config) {
             callback('reset does not match');
           }
           else {
-            CognitoHelper.updateRecords(identityId, null, null, {reset:reset}, 
+            CognitoHelper.updateRecords(identityId, null, null, {reset:reset},
                 callback);
           }
         }
@@ -510,10 +510,10 @@ function CognitoHelper(config) {
       }
     });
   };
-  
+
   /**
-   * Logs in with the user's email stored as a developer identifier in 
-   * CognitoIdentity and either a password or a reset token emailed in a 
+   * Logs in with the user's email stored as a developer identifier in
+   * CognitoIdentity and either a password or a reset token emailed in a
    * forgot password email.
    * @param {String} email - email uniquely identifies a user
    * @param {String} password - null if passing reset
@@ -527,7 +527,7 @@ function CognitoHelper(config) {
         callback({code: 404, error: 'does not exist ' + email});
       }
       else {
-        checkPasswordCognitoSync(dataId.IdentityId, password, reset, 
+        checkPasswordCognitoSync(dataId.IdentityId, password, reset,
             function(err, data) {
           if(err) {
             callback({code: 401, error: err});
@@ -539,8 +539,8 @@ function CognitoHelper(config) {
       }
     });
   };
-  
-  var loginFederatedWithToken = function(provider, token, refreshToken, 
+
+  var loginFederatedWithToken = function(provider, token, refreshToken,
       profile, name, email, callback) {
     // retrieve an existing or create a new account
     CognitoHelper.getId(provider, token, function(err, dataId) {
@@ -554,21 +554,21 @@ function CognitoHelper(config) {
           if(email && !existingEmail) {
             // if no existing email but passed an email, create a developer
             // identity with that new email and...
-            CognitoHelper.getId(null, email, 
+            CognitoHelper.getId(null, email,
                 function(err, existingEmaildataId) {
               logger.debug('exists dataId for ' + email, existingEmaildataId);
-              
+
               if(err || !existingEmaildataId) {
                 // ... link the new dev identity (identitied by email)
-                // with the one being created (identified by provider and token) 
+                // with the one being created (identified by provider and token)
                 // thus adding email as its dev identifier
-                linkWithToken(provider, token, null, email, 
+                linkWithToken(provider, token, null, email,
                     function(err, data) {
                   if(err) {
                     callback(err);
                   }
                   else
-                    onLogin(provider, token, refreshToken, profile, name, 
+                    onLogin(provider, token, refreshToken, profile, name,
                         dataId.IdentityId, callback);
                 });
               }
@@ -577,23 +577,23 @@ function CognitoHelper(config) {
                 // that came with the profile, otherwise an existing account
                 // will be linked to the new one, and its original identity
                 // disabled and its profile lost
-                callback({code: 409, 
+                callback({code: 409,
                   error: 'There is already an account with '
                     + email + ' that belongs to you'});
               }
             });
           }
           else {
-            onLogin(provider, token, refreshToken, profile, name, 
+            onLogin(provider, token, refreshToken, profile, name,
                 dataId.IdentityId, callback);
           }
         });
       }
     });
   };
-  
+
   /**
-   * Retrieves from CognitoIdenity a list of federated providers which the user 
+   * Retrieves from CognitoIdenity a list of federated providers which the user
    * has logins with. Use to display a list of linked logins in a
    * user's profile.
    * @param {String} identityId - CognitoIdentity ID
@@ -604,7 +604,7 @@ function CognitoHelper(config) {
       describeIdentity: function(callback) {
         var params = {IdentityId:identityId};
         logger.debug('describeIdentity', params);
-        
+
         cognitoIdentity.describeIdentity(params, function(err, data) {
           if(err) {
             callback(err);
@@ -612,7 +612,7 @@ function CognitoHelper(config) {
           else {
             var u = {};
             u.id = data.IdentityId;
-            
+
             _.each(data.Logins, function(p) {
               if(p === 'accounts.google.com')
                 u.google = true;
@@ -623,7 +623,7 @@ function CognitoHelper(config) {
               else if(p === 'api.twitter.com')
                 u.twitter = true;
             });
-            
+
             callback(null, u);
           }
         });
@@ -631,7 +631,7 @@ function CognitoHelper(config) {
       getDeveloperTokens: function(callback) {
         CognitoHelper.getDeveloperTokens(identityId, function(developerTokens) {
           var u = {};
-          
+
           _.each(developerTokens, function(t) {
             var d = t.substring(0, t.indexOf(config.COGNITO_SEPARATOR));
             if(d)
@@ -639,7 +639,7 @@ function CognitoHelper(config) {
             else
               u.email = t;
           });
-          
+
           callback(null, u);
         });
       }
@@ -648,14 +648,14 @@ function CognitoHelper(config) {
       if(err)
         finalCallback(err);
       else
-        finalCallback(null, 
+        finalCallback(null,
             _.merge(results.describeIdentity, results.getDeveloperTokens));
     });
   };
-  
+
   /**
-   * Retrieves from CognitoIdenity a list of federated providers which a user 
-   * has logins with. 
+   * Retrieves from CognitoIdenity a list of federated providers which a user
+   * has logins with.
    * Retrieves user name, email, profile from CognitoSync.
    * Use to display full user profile.
    * @param {String} identityId - CognitoIdentity ID
@@ -667,25 +667,25 @@ function CognitoHelper(config) {
         CognitoHelper.describe(identityId, callback);
       },
       getRecords: function(callback) {
-        CognitoHelper.getRecords(identityId, 
-            ['name','provider','profile','password'], 
+        CognitoHelper.getRecords(identityId,
+            ['name','provider','profile','password'],
             function(err, data) {
           if(err) {
             callback(err);
           }
           else {
             var user = {};
-            
+
             user.name = data.name;
             user.provider = data.provider;
-            
+
             for(var a in data) {
               if(_.startsWith(a, 'profile'))
                 user[a] = data[a];
             }
-            
+
             user.password = data.password ? true : false;
-            
+
             callback(null, user);
           }
         });
@@ -697,70 +697,70 @@ function CognitoHelper(config) {
       }
       else {
         var user = _.merge(results.describe, results.getRecords);
-        
+
         user.name = user.name || user.email || user.id;
 
         // for compatibility with satellizer
         user.displayName = user.name;
-        
+
         finalCallback(null, user);
       }
     });
   };
-  
+
   var createDeveloperIdentity = function(token, callback) {
     var p = normalizeProvider(null, token);
-    
+
     var logins = {};
     logins[p.name] = p.token;
-    
+
     var params = {
-        IdentityPoolId: config.COGNITO_IDENTITY_POOL_ID,  
+        IdentityPoolId: config.COGNITO_IDENTITY_POOL_ID,
         Logins : logins,
         //TokenDuration: 60
     };
     logger.debug('getOpenIdTokenForDeveloperIdentity', params);
-    
+
     cognitoIdentity.getOpenIdTokenForDeveloperIdentity(params, callback);
   };
-  
+
   /**
-   * Retrieves CognitoIdenity ID given either a federated provider token 
+   * Retrieves CognitoIdenity ID given either a federated provider token
    * or user email.
-   * @param {String} provider - name of a federated login provider like google, 
+   * @param {String} provider - name of a federated login provider like google,
    * amazon, facebook, twitter, stripe, paypal; or null for email as token
-   * @param {String} token - access token gotten from provider thru oauth 
+   * @param {String} token - access token gotten from provider thru oauth
    * or user's email
    * @param callback - function(err, data)
    */
   CognitoHelper.getId = function(provider, token, callback) {
     var p = normalizeProvider(provider, token);
-    
+
     if(p.isDeveloper) {
       var params = {
           IdentityPoolId: config.COGNITO_IDENTITY_POOL_ID,
-          DeveloperUserIdentifier: p.token, 
+          DeveloperUserIdentifier: p.token,
           MaxResults:10
       };
       logger.debug('lookupDeveloperIdentity', params);
-      
+
       cognitoIdentity.lookupDeveloperIdentity(params, callback);
     }
     else {
       var logins = {};
       logins[p.name] = p.token;
-      
+
       var params = {
-          IdentityPoolId: config.COGNITO_IDENTITY_POOL_ID, 
-          AccountId: config.AWS_ACCOUNT_ID, 
+          IdentityPoolId: config.COGNITO_IDENTITY_POOL_ID,
+          AccountId: config.AWS_ACCOUNT_ID,
           Logins:logins
       };
       logger.debug('getId', params);
-      
+
       cognitoIdentity.getId(params, callback);
     }
 	};
-  
+
 	/**
    * Retrieves all developer (non federated) identifiers like user emails or
    * ids with federated providers not integrated with AWS like PayPal or Stripe.
@@ -773,7 +773,7 @@ function CognitoHelper(config) {
         IdentityId: identityId,
         MaxResults: 10};
     logger.debug('lookupDeveloperIdentity', params);
-    
+
     cognitoIdentity.lookupDeveloperIdentity(params, function(err, data) {
       if(err) {
         callback([]);
@@ -783,11 +783,11 @@ function CognitoHelper(config) {
       }
     });
   };
-  
+
   var existsEmail = function(email, userId, callback) {
     CognitoHelper.getId(null, email, function(err, dataId) {
       logger.debug('existsEmail dataId for ' + email + ' ' + userId, dataId);
-      
+
       if(err || !dataId) {
         logger.debug('existsEmail dataId not found');
         callback(null, false);
@@ -801,34 +801,34 @@ function CognitoHelper(config) {
       }
     });
   }
-  
+
   var existsFederated = function(provider, token, callback) {
     CognitoHelper.getId(provider, token, function(err, dataId) {
       logger.debug('existsFederated dataId for ' + provider, dataId);
-      
+
       if(err || !dataId) {
         callback(null, false);
       }
       else {
-        CognitoHelper.getRecords(dataId.IdentityId, ['token'], 
+        CognitoHelper.getRecords(dataId.IdentityId, ['token'],
             function(err, data) {
           logger.debug('data', data);
           logger.debug('Object.keys(data)', Object.keys(data));
-          
+
           if(err) {
             callback(err);
           }
-          else { 
+          else {
             callback(null, Object.keys(data).length === 1);
           }
         });
       }
     });
   }
-  
+
   var linkDeveloperAndDeveloper = function(currentToken, linkToken, callback) {
     logger.debug('currentToken ' + currentToken + ' linkToken ' + linkToken);
-    
+
     createDeveloperIdentity(linkToken, function(err, data) {
       if(err) {
         callback(err);
@@ -846,62 +846,62 @@ function CognitoHelper(config) {
       }
     });
   };
-  
-  var linkDeveloperAndFederated = function(identityId, 
+
+  var linkDeveloperAndFederated = function(identityId,
       currentProvider, currentToken,
-      developerToken, 
+      developerToken,
       callback) {
     var logins = {};
     logins[currentProvider] = currentToken;
     logins[config.COGNITO_DEVELOPER_PROVIDER_NAME] = developerToken;
-    
+
     var params = {
         IdentityPoolId: config.COGNITO_IDENTITY_POOL_ID,
-        IdentityId: identityId, 
+        IdentityId: identityId,
         Logins: logins
     };
     logger.debug('getOpenIdTokenForDeveloperIdentity', params);
-    
+
     cognitoIdentity.getOpenIdTokenForDeveloperIdentity(params, callback);
   };
-	
+
   var linkWithToken = function(currentProvider, currentToken,
-      linkProvider, linkToken,  
+      linkProvider, linkToken,
       callback) {
     var current = normalizeProvider(currentProvider, currentToken);
     var link = normalizeProvider(linkProvider, linkToken);
-    
+
     CognitoHelper.getId(currentProvider, currentToken, function(err, data) {
       if(err) {
         callback(err);
       }
       else {
         var identityId = data.IdentityId;
-        
+
         logger.debug('current identityId', identityId);
-        
+
         if(current.isDeveloper && link.isDeveloper) {
-          // link both developers 
+          // link both developers
           logger.debug('link both developers');
-          
+
           linkDeveloperAndDeveloper(current.token, link.token, callback);
         }
         else if(!current.isDeveloper && !link.isDeveloper) {
           // link both federated
           logger.debug('link both federated');
-          
+
           var logins = {};
           logins[current.name] = current.token;
           logins[link.name] = link.token;
-          
+
           var params = {
               IdentityPoolId: config.COGNITO_IDENTITY_POOL_ID,
-              IdentityId: identityId, 
+              IdentityId: identityId,
               Logins: logins
           };
           logger.debug(params);
-          
-          cognitoIdentity.getOpenIdTokenForDeveloperIdentity(params, 
+
+          cognitoIdentity.getOpenIdTokenForDeveloperIdentity(params,
               callback);
         }
         else if(!current.isDeveloper && link.isDeveloper) {
@@ -909,23 +909,23 @@ function CognitoHelper(config) {
           logger.debug('link developer to federated');
 
           // check if federated has developer ids linked already
-          CognitoHelper.getDeveloperTokens(identityId, 
+          CognitoHelper.getDeveloperTokens(identityId,
               function(developerTokens) {
             if(developerTokens.length > 0) {
               // link developer to one of the developer tokens of this identity
               var currentDeveloperToken = developerTokens[0];
 
-              logger.debug('link developer to identity that has fed and dev', 
+              logger.debug('link developer to identity that has fed and dev',
                   currentDeveloperToken);
 
-              linkDeveloperAndDeveloper(currentDeveloperToken, 
+              linkDeveloperAndDeveloper(currentDeveloperToken,
                   link.token, callback);
             }
             else {
               // link developer to identity that has federated only
               logger.debug('link developer to identity that has fed only');
 
-              linkDeveloperAndFederated(identityId, 
+              linkDeveloperAndFederated(identityId,
                   current.name, current.token,
                   link.token, callback);
             }
@@ -934,79 +934,79 @@ function CognitoHelper(config) {
         else {
           // link federated to developer
           logger.debug('link federated to developer');
-          
-          linkDeveloperAndFederated(identityId, 
+
+          linkDeveloperAndFederated(identityId,
               link.name, link.token,
               current.token, callback);
         }
       }
     });
 	};
-	
+
 	var unlinkWithToken = function(currentProvider, currentToken,
-      linkProvider, linkToken, 
+      linkProvider, linkToken,
       callback) {
     var current = normalizeProvider(currentProvider, currentToken);
     var link = normalizeProvider(linkProvider, linkToken);
-    
+
     CognitoHelper.getId(currentProvider, currentToken, function(err, data) {
       if(err) {
         callback(err);
       }
       else {
         var identityId = data.IdentityId;
-        
+
         logger.debug('current identityId', identityId);
-        
+
         if(link.isDeveloper) {
           // unlink developer
           logger.debug('unlink developer');
-          
-          CognitoHelper.getDeveloperTokens(identityId, 
+
+          CognitoHelper.getDeveloperTokens(identityId,
               function(developerTokens) {
             var developerProvider = linkProvider || '';
-            
+
             var developerToken = _.find(developerTokens, function(t) {
-              return developerProvider === 
+              return developerProvider ===
                 t.substring(0, t.indexOf(config.COGNITO_SEPARATOR));
             });
-            
+
             var params = {
                 IdentityId: identityId,
                 IdentityPoolId: config.COGNITO_IDENTITY_POOL_ID,
                 DeveloperProviderName: config.COGNITO_DEVELOPER_PROVIDER_NAME,
                 DeveloperUserIdentifier: link.token || developerToken
             };
-            
+
             cognitoIdentity.unlinkDeveloperIdentity(params, callback);
           });
         }
         else {
           // unlink federated
-          
+
           var logins = {};
-          
+
           if(current.isDeveloper) {
             logger.debug('unlink federated from developer');
-            
+
             logins[link.name] = link.token;
           }
           else {
             logger.debug('unlink federated from federated');
-            
-            logins[current.name] = current.token;            
+
+            logins[current.name] = current.token;
           }
-          
-          var params = {IdentityId:identityId, Logins:logins, 
+
+          var params = {IdentityId:identityId, Logins:logins,
               LoginsToRemove: [link.name]};
           logger.debug('unlinkIdentity', params);
-          
+
           cognitoIdentity.unlinkIdentity(params, callback);
         }
       }
     });
 	};
-	
+
 	var getEmail = function(identityId, callback) {
 	  CognitoHelper.getDeveloperTokens(identityId, function(developerTokens) {
 	    var email = _.find(developerTokens, function(t) {
@@ -1016,9 +1016,9 @@ function CognitoHelper(config) {
 	    callback(email);
 	  });
 	};
-	
+
 	var getCurrentProvider = function(identityId, callback) {
-	  CognitoHelper.getRecords(identityId, ['provider','token'], 
+	  CognitoHelper.getRecords(identityId, ['provider','token'],
         function(err, current) {
       if(err) {
         callback(err);
@@ -1033,19 +1033,19 @@ function CognitoHelper(config) {
       }
     });
 	};
-  
+
 	/**
-   * Establishes a link to a login with federated provider. 
+   * Establishes a link to a login with federated provider.
    * @param {String} identityId - CognitoIdentity ID
    * @param {String} linkProvider - name of the federated provider to link
    * @param {String} linkToken - access token from the federated provider
-   * @param {String} linkRefreshToken - refresh token 
+   * @param {String} linkRefreshToken - refresh token
    * from the federated provider to save
-   * @param {String} linkProfile - json formatted user profile 
+   * @param {String} linkProfile - json formatted user profile
    * with the federated provider to save
    * @param callback - function(err, data)
    */
-  CognitoHelper.link = function(identityId, 
+  CognitoHelper.link = function(identityId,
       linkProvider, linkToken, linkRefreshToken, linkProfile, callback) {
     getCurrentProvider(identityId, function(err, current) {
       if(err) {
@@ -1054,14 +1054,14 @@ function CognitoHelper(config) {
       else {
         async.parallel({
           link: function(callback) {
-            linkWithToken(current.provider, current.token, 
+            linkWithToken(current.provider, current.token,
                 linkProvider, linkToken, callback);
           },
           updateRefreshToken: function(callback) {
-            updateRefreshToken(identityId, linkProvider, linkRefreshToken, 
+            updateRefreshToken(identityId, linkProvider, linkRefreshToken,
                 linkProfile, callback);
           }
-        }, 
+        },
         function(err, results) {
           if(err)
             callback(err);
@@ -1071,42 +1071,42 @@ function CognitoHelper(config) {
       }
     });
   };
-  
+
   /**
-   * Removes a link to a login with federated provider. 
+   * Removes a link to a login with federated provider.
    * @param {String} identityId - CognitoIdentity ID
    * @param {String} linkProvider - name of the federated provider to unlink
    * @param {String} linkToken - access token from the federated provider
    * @param callback - function(err, data)
    */
-  CognitoHelper.unlink = function(identityId, 
+  CognitoHelper.unlink = function(identityId,
       linkProvider, linkToken, callback) {
     getCurrentProvider(identityId, function(err, current) {
       if(err) {
         callback(err);
       }
       else {
-        unlinkWithToken(current.provider, current.token, 
+        unlinkWithToken(current.provider, current.token,
             linkProvider, linkToken, callback);
       }
     });
   };
-  
+
   /**
-   * Logs in with a federated provider. 
+   * Logs in with a federated provider.
    * @param {String} provider - name of the federated provider to login with
-   * @param {String} code - access code returned from an oauth call to the 
+   * @param {String} code - access code returned from an oauth call to the
    * federated provider after a successful authorization
    * @param {String} clientId - oauth client id of your web or mobile app with
    * the federated provider
-   * @param {String} redirectUri - redirect url returned from an oauth call to 
+   * @param {String} redirectUri - redirect url returned from an oauth call to
    * the provider
    * @param {String} userId - if a user CognitoIdentity ID is given, means the
-   * user is already logged in and a subsequent login with the federated 
+   * user is already logged in and a subsequent login with the federated
    * provider will link the provider login with the current login
    * @param callback - function(err, data)
    */
-  CognitoHelper.loginFederated = function(provider, code, clientId, 
+  CognitoHelper.loginFederated = function(provider, code, clientId,
       redirectUri, userId, callback) {
     var accessTokenUrl = config.providers[provider].accessTokenUrl;
     var peopleApiUrl = config.providers[provider].peopleApiUrl;
@@ -1118,71 +1118,71 @@ function CognitoHelper(config) {
       grant_type: 'authorization_code'
     };
     logger.debug('params', params);
-    
+
     // Step 1. Exchange authorization code for access token.
-    request.post(accessTokenUrl, { json: true, form: params }, 
+    request.post(accessTokenUrl, { json: true, form: params },
         function(err, response, token) {
       if(err) {
         callback(err);
       }
       else if(!token.access_token) {
         logger.warn('no token.access_token', token);
-        callback({code: 400, 
+        callback({code: 400,
           error: 'no token ' + token.error + ' ' + token.error_description});
       }
       else {
         logger.debug('token', token);
-        
+
         var accessToken = token.access_token;
         var headers = { Authorization: 'Bearer ' + accessToken };
         var refreshToken = token.refresh_token;
         var expiresIn = token.expires_in;
-        
+
         // Step 2. Retrieve profile information about the current user.
-        request.get({ url: peopleApiUrl, headers: headers, json: true }, 
+        request.get({ url: peopleApiUrl, headers: headers, json: true },
             function(err, response, profile) {
           if(err) {
             callback (err);
           }
           else {
             logger.debug('profile', profile);
-            
+
             var norm = config.providers[provider].normalize(token, profile);
             logger.debug('norm', norm);
-            
+
             var idToken = norm.idToken;
             var name = norm.name;
             var email = norm.email;
-            
+
             if(userId) {
               // Step 3a. Link user accounts if passed userId.
               // check if a federated user already exists
-              existsFederated(provider, idToken, 
+              existsFederated(provider, idToken,
                   function(err, existsFederated) {
                 if(err) {
                   callback(err);
                 }
                 else if(existsFederated) {
-                  callback({code: 409, 
+                  callback({code: 409,
                     error: 'There is already an account with '
                       + provider + ' that belongs to you'});
                 }
                 else {
                   // check if a user exists with an email matching the one from
                   // federated profile
-                  existsEmail(email, userId, 
+                  existsEmail(email, userId,
                       function(err, existsEmail) {
                     if(err) {
                       callback(err);
                     }
                     else if(existsEmail) {
-                      callback({code: 409, 
+                      callback({code: 409,
                         error: 'There is already an account with '
                           + email + ' that belongs to you'});
                     }
                     else {
                       // if no federated user nor matching email found, link
-                      CognitoHelper.link(userId, provider, idToken, 
+                      CognitoHelper.link(userId, provider, idToken,
                           refreshToken, profile, function(err, data) {
                         if(err) {
                           callback(err);
@@ -1195,10 +1195,10 @@ function CognitoHelper(config) {
                   });
                 }
               });
-            } 
+            }
             else {
               // Step 3b. Create a new user account or return an existing one.
-              loginFederatedWithToken(provider, idToken, 
+              loginFederatedWithToken(provider, idToken,
                   refreshToken, profile, name, email, function(err, user) {
                 if(err) {
                   callback(err);
@@ -1213,13 +1213,13 @@ function CognitoHelper(config) {
       }
     });
   };
-  
+
   /**
-   * Retrieves from CognitoSync a refresh token for the federated provider 
-   * the user last logged in with. 
-   * Exchanges this token with the provider for an access token, 
+   * Retrieves from CognitoSync a refresh token for the federated provider
+   * the user last logged in with.
+   * Exchanges this token with the provider for an access token,
    * uses the access token to login.
-   * Use this to automatically re-login during long running user sessions. 
+   * Use this to automatically re-login during long running user sessions.
    * @param {String} identityId - CognitoIdentity ID
    * @param callback - function(err, data)
    */
@@ -1233,11 +1233,11 @@ function CognitoHelper(config) {
       }
       else {
         var provider = dataRefresh.provider;
-        
+
         //TODO use other providers like paypal, stripe
-        if(provider === 'google' 
-          || provider === 'amazon' 
-          || provider === 'facebook' 
+        if(provider === 'google'
+          || provider === 'amazon'
+          || provider === 'facebook'
           || provider === 'twitter') {
           var accessTokenUrl = config.providers[provider].accessTokenUrl;
           var params = {
@@ -1249,19 +1249,19 @@ function CognitoHelper(config) {
           logger.debug('post', params);
 
           // Step 1. Exchange refresh code for id token.
-          request.post(accessTokenUrl, { json: true, form: params }, 
+          request.post(accessTokenUrl, { json: true, form: params },
               function(err, response, token) {
             if(err) {
               callback(err);
             }
             else {
               logger.debug('token', token);
-              
+
               var expiresIn = token.expires_in;
 
               var norm = config.providers[provider].normalize(token);
               logger.debug('norm', norm);
-              
+
               var idToken = norm.idToken;
 
               // Step 2. Re-login normally with the new id token.
@@ -1284,7 +1284,7 @@ function CognitoHelper(config) {
       }
     });
   };
-	
+
 }
 
 module.exports = CognitoHelper;

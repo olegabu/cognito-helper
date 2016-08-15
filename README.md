@@ -182,7 +182,7 @@ export AWS_SECRET_ACCESS_KEY=4zqb1GV2g3mxgkhIlkF2H4zzqb1GV2g3mxgkhIlA
 export AWS_ACCESS_KEY_ID=A1234567890123456789Q
 ...
 ```
-or put them into into `.env` file (kept out of the source control). 
+or put them into into [`.env`](https://www.npmjs.com/package/dotenv) file (kept out of the source control). 
 The `.env` is required if you'd like to run as AWS 
 Lambda function as Lambda doesn't currently support environment variables.
 ```
@@ -472,7 +472,9 @@ var cognito = new CognitoHelper(require('./myconfig.js'));
 
 <a name="new_module_cognito-helper..CognitoHelper_new"></a>
 #### new CognitoHelper(config)
-Wrapper for Amazon Cognito library with methods common for a web or mobile app, like authenticating with email and password, signup, federated login, link accounts, reset password etc.
+Wrapper for Amazon Cognito library with methods common for a web 
+or mobile app, like authenticating with email and password, signup, 
+federated login, link accounts, reset password etc.
 
 
 | Param | Type | Description |
@@ -507,7 +509,9 @@ Updates record in a user's profile with CognitoSync.
 
 <a name="module_cognito-helper..CognitoHelper.getRefreshToken"></a>
 #### CognitoHelper.getRefreshToken(identityId, callback)
-Retrieves a refresh token for the federated provider the user last logged in with. The refresh token is kept in a profile dataset in CognitoSync.Use to call the provider to obtain a new access token.
+Retrieves a refresh token for the federated provider the user last logged 
+in with. The refresh token is kept in a profile dataset in CognitoSync.
+Use to call the provider to obtain a new access token.
 
 **Kind**: static method of <code>[CognitoHelper](#module_cognito-helper..CognitoHelper)</code>  
 
@@ -518,7 +522,11 @@ Retrieves a refresh token for the federated provider the user last logged in wi
 
 <a name="module_cognito-helper..CognitoHelper.getCredentials"></a>
 #### CognitoHelper.getCredentials(identityId, callback)
-Retrieves AWS Credentials to call AWS services the Authenticated User Role permits.If the credentials expired due to a time limit on federated login session, uses saved refresh token to re-login with the federated provider, and uses the new access token.
+Retrieves AWS Credentials to call AWS services 
+the Authenticated User Role permits.
+If the credentials expired due to a time limit on federated login session, 
+uses saved refresh token to re-login with the federated provider, and 
+uses the new access token.
 
 **Kind**: static method of <code>[CognitoHelper](#module_cognito-helper..CognitoHelper)</code>  
 
@@ -529,7 +537,8 @@ Retrieves AWS Credentials to call AWS services the Authenticated User Role perm
 
 <a name="module_cognito-helper..CognitoHelper.signup"></a>
 #### CognitoHelper.signup(name, email, password, callback)
-Creates a user in CognitoIdentity with an email as a developer identifier.Stores user name and password in CognitoSync.
+Creates a user in CognitoIdentity with an email as a developer identifier.
+Stores user name and password in CognitoSync.
 
 **Kind**: static method of <code>[CognitoHelper](#module_cognito-helper..CognitoHelper)</code>  
 
@@ -554,7 +563,11 @@ Updates password record in a user's profile with CognitoSync.
 
 <a name="module_cognito-helper..CognitoHelper.forgotPassword"></a>
 #### CognitoHelper.forgotPassword(email, callback)
-Sends an email with a link to temporarily login the userinstead of a forgotten password. Uses Amazon SimpleEmailService (SES). Email body, subject and source are defined in the config. Make sure the email source (from email) is authorized to send emails with SES.
+Sends an email with a link to temporarily login the user
+instead of a forgotten password. Uses Amazon SimpleEmailService (SES). 
+Email body, subject and source are defined in the config. 
+Make sure the email source (from email) is authorized to send emails 
+with SES.
 
 **Kind**: static method of <code>[CognitoHelper](#module_cognito-helper..CognitoHelper)</code>  
 
@@ -565,7 +578,9 @@ Sends an email with a link to temporarily login the userinstead of a forgotten 
 
 <a name="module_cognito-helper..CognitoHelper.login"></a>
 #### CognitoHelper.login(email, password, reset, callback)
-Logs in with the user's email stored as a developer identifier in CognitoIdentity and either a password or a reset token emailed in a forgot password email.
+Logs in with the user's email stored as a developer identifier in 
+CognitoIdentity and either a password or a reset token emailed in a 
+forgot password email.
 
 **Kind**: static method of <code>[CognitoHelper](#module_cognito-helper..CognitoHelper)</code>  
 
@@ -578,7 +593,9 @@ Logs in with the user's email stored as a developer identifier in CognitoIdenti
 
 <a name="module_cognito-helper..CognitoHelper.describe"></a>
 #### CognitoHelper.describe(identityId, finalCallback)
-Retrieves from CognitoIdenity a list of federated providers which the user has logins with. Use to display a list of linked logins in auser's profile.
+Retrieves from CognitoIdenity a list of federated providers which the user 
+has logins with. Use to display a list of linked logins in a
+user's profile.
 
 **Kind**: static method of <code>[CognitoHelper](#module_cognito-helper..CognitoHelper)</code>  
 
@@ -589,7 +606,10 @@ Retrieves from CognitoIdenity a list of federated providers which the user has 
 
 <a name="module_cognito-helper..CognitoHelper.getProfile"></a>
 #### CognitoHelper.getProfile(identityId, finalCallback)
-Retrieves from CognitoIdenity a list of federated providers which a user has logins with. Retrieves user name, email, profile from CognitoSync.Use to display full user profile.
+Retrieves from CognitoIdenity a list of federated providers which a user 
+has logins with. 
+Retrieves user name, email, profile from CognitoSync.
+Use to display full user profile.
 
 **Kind**: static method of <code>[CognitoHelper](#module_cognito-helper..CognitoHelper)</code>  
 
@@ -600,7 +620,8 @@ Retrieves from CognitoIdenity a list of federated providers which a user has lo
 
 <a name="module_cognito-helper..CognitoHelper.getId"></a>
 #### CognitoHelper.getId(provider, token, callback)
-Retrieves CognitoIdenity ID given either a federated provider token or user email.
+Retrieves CognitoIdenity ID given either a federated provider token 
+or user email.
 
 **Kind**: static method of <code>[CognitoHelper](#module_cognito-helper..CognitoHelper)</code>  
 
@@ -612,7 +633,8 @@ Retrieves CognitoIdenity ID given either a federated provider token or user ema
 
 <a name="module_cognito-helper..CognitoHelper.getDeveloperTokens"></a>
 #### CognitoHelper.getDeveloperTokens(identityId, callback)
-Retrieves all developer (non federated) identifiers like user emails orids with federated providers not integrated with AWS like PayPal or Stripe.
+Retrieves all developer (non federated) identifiers like user emails or
+ids with federated providers not integrated with AWS like PayPal or Stripe.
 
 **Kind**: static method of <code>[CognitoHelper](#module_cognito-helper..CognitoHelper)</code>  
 
@@ -666,7 +688,11 @@ Logs in with a federated provider.
 
 <a name="module_cognito-helper..CognitoHelper.refreshProvider"></a>
 #### CognitoHelper.refreshProvider(identityId, callback)
-Retrieves from CognitoSync a refresh token for the federated provider the user last logged in with. Exchanges this token with the provider for an access token, uses the access token to login.Use this to automatically re-login during long running user sessions.
+Retrieves from CognitoSync a refresh token for the federated provider 
+the user last logged in with. 
+Exchanges this token with the provider for an access token, 
+uses the access token to login.
+Use this to automatically re-login during long running user sessions.
 
 **Kind**: static method of <code>[CognitoHelper](#module_cognito-helper..CognitoHelper)</code>  
 
