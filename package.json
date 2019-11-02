@@ -14,7 +14,7 @@
     "https-proxy-agent": "^1.0.0",
     "js-sha256": "^0.3.0",
     "jwt-simple": "^0.3.0",
-    "lodash": "^3.10.1",
+    "lodash": "^4.17.15",
     "log4js": "^0.6.27",
     "moment": "^2.10.2",
     "randomstring": "^1.0.6",
