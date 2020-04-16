@@ -11,7 +11,7 @@
     "body-parser": "^1.12.3",
     "dotenv": "^1.2.0",
     "express": "^4.12.3",
-    "https-proxy-agent": "^1.0.0",
+    "https-proxy-agent": "^5.0.0",
     "js-sha256": "^0.3.0",
     "jwt-simple": "^0.3.0",
     "lodash": "^3.10.1",
